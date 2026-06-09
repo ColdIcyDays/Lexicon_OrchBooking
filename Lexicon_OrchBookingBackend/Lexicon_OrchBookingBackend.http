@@ -1,0 +1,6 @@
+@Lexicon_OrchBookingBackend_HostAddress = http://localhost:5294
+
+GET {{Lexicon_OrchBookingBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
