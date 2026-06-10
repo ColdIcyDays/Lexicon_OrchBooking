@@ -19,6 +19,18 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         var connectionString = builder.Configuration.GetConnectionString("Lexicon_OrchBookingBackendContextConnection") ?? throw new InvalidOperationException("Connection string 'Lexicon_OrchBookingBackendContextConnection' not found.");;
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("ReactFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:5174/")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
+        
+        /*WithOrigins("http://localhost:5173")*/
+        
         builder.Services.AddDbContext<Lexicon_OrchBookingBackendContext>(options => options.UseNpgsql(connectionString));
 
         builder.Services
@@ -48,17 +60,9 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddEndpointsApiExplorer();
 
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("ReactFrontend", policy =>
-            {
-                policy.WithOrigins("https://localhost:5173")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
-        });
 
         var app = builder.Build();
+        app.UseCors("ReactFrontend");
         
         app.MapIdentityApi<Lexicon_OrchBookingBackendUser>();
 
@@ -71,7 +75,6 @@ public class Program
         }
         
         app.UseHttpsRedirection();
-        app.UseCors("ReactFrontend");
         app.UseAuthentication();
         app.UseAuthorization();
 

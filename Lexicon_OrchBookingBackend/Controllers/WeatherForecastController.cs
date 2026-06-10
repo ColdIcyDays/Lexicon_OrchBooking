@@ -37,19 +37,16 @@ public class WeatherForecastController : ControllerBase
             .ToArray();
     }*/
     
-    [Authorize]
     [HttpGet(Name = "GetSomethingElse")]
-    public IActionResult Get()
+    public TestModel Get()
     {
         if (OrchContext != null)
         {
             
-        TestModel model = new TestModel();
-        model.SomeText = "HAHAHAHA";
-        OrchContext.TestModels.Add(model);
-        OrchContext.SaveChanges();
-        return Ok("Wow, number of models in db: " + OrchContext.TestModels.Count());
         }
-        return Ok("DB CONTEXT NULL");
+        TestModel model = new TestModel();
+        model.Id = 5;
+        model.SomeText = "HAHAHAHA";
+        return model;
     }
 }

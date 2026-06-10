@@ -45,10 +45,22 @@ public class AuthController : ControllerBase
 
         return BadRequest("Uh oh, something went wrong! Result: " + identityResult.ToString());
     }
+
+    [HttpGet]
+    [Route("CheckAuth")]
+    public async Task<IActionResult> CheckAuth()
+    {
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            return Ok("You are authed!");
+        }
+        
+        return BadRequest("You are NOT authed!");
+    }
     
     [HttpPost]
     [Route("Login")]
-    public async Task<IActionResult> Login([FromBody] OrchLoginRequest aRequest)
+    public async Task<IActionResult> Login([FromForm] OrchLoginRequest aRequest)
     {
         // Note: Currently locout failure is always false... Track that on the api side?
         Lexicon_OrchBookingBackendUser? user = await _userManager.FindByNameAsync(aRequest.UserName);
