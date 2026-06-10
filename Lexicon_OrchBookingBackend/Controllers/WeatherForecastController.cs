@@ -1,4 +1,6 @@
 using Lexicon_OrchBookingBackend.Data;
+using Lexicon_OrchBookingBackend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lexicon_OrchBookingBackend.Controllers;
@@ -20,6 +22,8 @@ public class WeatherForecastController : ControllerBase
         OrchContext = aContext;
     }
     
+    
+    
 
     /*[HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
@@ -33,10 +37,19 @@ public class WeatherForecastController : ControllerBase
             .ToArray();
     }*/
     
+    [Authorize]
     [HttpGet(Name = "GetSomethingElse")]
     public IActionResult Get()
     {
-        
-        return Ok("WoW, you got me!");
+        if (OrchContext != null)
+        {
+            
+        TestModel model = new TestModel();
+        model.SomeText = "HAHAHAHA";
+        OrchContext.TestModels.Add(model);
+        OrchContext.SaveChanges();
+        return Ok("Wow, number of models in db: " + OrchContext.TestModels.Count());
+        }
+        return Ok("DB CONTEXT NULL");
     }
 }

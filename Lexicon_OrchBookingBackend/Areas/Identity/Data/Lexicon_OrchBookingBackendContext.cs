@@ -1,12 +1,14 @@
 using Lexicon_OrchBookingBackend.Areas.Identity.Data;
+using Lexicon_OrchBookingBackend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Lexicon_OrchBookingBackend.Data;
 
-public class Lexicon_OrchBookingBackendContext : DbContext
+public class Lexicon_OrchBookingBackendContext : IdentityDbContext<Lexicon_OrchBookingBackendUser>
 {
+    public DbSet<TestModel> TestModels { get; set; }
     public Lexicon_OrchBookingBackendContext(DbContextOptions<Lexicon_OrchBookingBackendContext> options)
         : base(options)
     {
