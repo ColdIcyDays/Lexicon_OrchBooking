@@ -1,0 +1,34 @@
+﻿services:
+  lexicon_orchbookingbackend:
+    image: lexicon_orchbookingbackend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=postgreserver:5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;
+    depends_on:
+      - postgreserver
+      
+  
+    
+    
+  postgreserver:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: Lexicon_OrchBookingBackend
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hvhhvhvv02
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+networks:
+  default:
+    name: customNetwork
+    
+volumes:
+  pgdata:

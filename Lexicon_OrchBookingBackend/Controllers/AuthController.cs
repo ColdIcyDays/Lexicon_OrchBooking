@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("Register")]
-    public async Task<IActionResult> Register([FromBody] OrchRegisterRequest aRequest)
+    public async Task<IActionResult> Register([FromForm] OrchRegisterRequest aRequest)
     {
         var identityUser = new Lexicon_OrchBookingBackendUser();
         identityUser.Email = aRequest.Email;
@@ -52,10 +52,34 @@ public class AuthController : ControllerBase
     {
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
-            return Ok("You are authed!");
+            return Ok("You are authed! Heartbeat wow!");
         }
         
-        return BadRequest("You are NOT authed!");
+        return BadRequest("You are NOT authed! HEARTBEAT FAILED SAD");
+    }
+    
+    [HttpGet]
+    [Route("AccountInfo")]
+    public async Task<ActionResult<OrchInfoData>> GetAccountInfo()
+    {
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            OrchInfoData data = new OrchInfoData();
+            var foundUser = await _userManager.GetUserAsync(User);
+
+            if (foundUser == null)
+            {
+                return BadRequest("You are NOT authed! HEARTBEAT FAILED SAD");
+            }
+            data.Email = foundUser.Email;
+            data.Username = foundUser.UserName;
+            data.Roles = _userManager.GetRolesAsync(foundUser).Result.ToArray();
+            
+            
+            return Ok(data);
+        }
+        
+        return BadRequest("You are NOT authed! HEARTBEAT FAILED SAD");
     }
     
     [HttpPost]
@@ -96,7 +120,7 @@ public class AuthController : ControllerBase
     [HttpPost]
     [Authorize (Roles = "Admin")]
     [Route("ModifyUserRole")]
-    public async Task<IActionResult> ModifyUserRole([FromBody] OrchModifyUsersRole aRequest)
+    public async Task<IActionResult> ModifyUserRole(OrchModifyUsersRole aRequest)
     {
         return Ok("Here are your claims! ");
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Lexicon_OrchBookingBackend.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Lexicon_OrchBookingBackend;
 
@@ -14,21 +15,36 @@ Api (that req. roles) [X]
 
 public class Program
 {
+    public static async Task ConfigureDB(IServiceScope aScope)
+    {
+        var db = aScope.ServiceProvider.GetRequiredService<Lexicon_OrchBookingBackendContext>();
+        await db.Database.MigrateAsync();
+        DataSeeder.SeedRoles(aScope.ServiceProvider);
+    }
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        var connectionString = builder.Configuration.GetConnectionString("Lexicon_OrchBookingBackendContextConnection") ?? throw new InvalidOperationException("Connection string 'Lexicon_OrchBookingBackendContextConnection' not found.");;
+        //var connectionString = builder.Configuration.GetConnectionString("ConnectionStrings__DefaultConnection") ?? throw new InvalidOperationException("Connection string 'Lexicon_OrchBookingBackendContextConnection' not found.");;
 
+        var connectionString =
+            "Server=postgreserver;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;";
+        Console.WriteLine(" ====== Connections string is: " + connectionString);
+        /*Lexicon_OrchBookingBackendContextConnection*/
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("ReactFrontend", policy =>
             {
-                policy.WithOrigins("http://localhost:5174/")
+                policy.WithOrigins("http://localhost:5173") //WithOrigins("http://localhost:5174/")
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
+
+  
+          
         
+
         /*WithOrigins("http://localhost:5173")*/
         
         builder.Services.AddDbContext<Lexicon_OrchBookingBackendContext>(options => options.UseNpgsql(connectionString));
@@ -66,15 +82,15 @@ public class Program
         
         app.MapIdentityApi<Lexicon_OrchBookingBackendUser>();
 
+            app.UseSwagger();
+            app.UseSwaggerUI();
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             //app.MapOpenApi();
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseHttpsRedirection();
         }
         
-        app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -82,7 +98,7 @@ public class Program
         app.MapControllers();
         {
             var scope = app.Services.CreateScope();
-            DataSeeder.SeedRoles(scope.ServiceProvider);
+            ConfigureDB(scope);
         }
 
         app.Run();
