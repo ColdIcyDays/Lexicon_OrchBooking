@@ -11,10 +11,14 @@
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=postgreserver:5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;
     depends_on:
-      - postgreserver
-      
-  
+      - postgreserver  
     
+  lexicon_orchbookingfrontend:
+    build:
+        context: ..\..\Webstrom projects\Lexicon_OrchBookingFrontend\
+        dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
     
   postgreserver:
     image: postgres:latest
