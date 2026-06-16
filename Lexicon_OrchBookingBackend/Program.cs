@@ -17,9 +17,21 @@ public class Program
 {
     public static async Task ConfigureDB(IServiceScope aScope)
     {
-        var db = aScope.ServiceProvider.GetRequiredService<Lexicon_OrchBookingBackendContext>();
-        await db.Database.MigrateAsync();
-        DataSeeder.SeedRoles(aScope.ServiceProvider);
+            Console.WriteLine("Configuring DB");
+        try
+        {
+            var db = aScope.ServiceProvider.GetRequiredService<Lexicon_OrchBookingBackendContext>();
+            Console.WriteLine("Started migration");
+            await db.Database.MigrateAsync();
+            Console.WriteLine("Migrated db");
+        }
+        catch (Exception E)
+        {
+            Console.WriteLine("Exception encountered during some part of migration!");
+            Console.WriteLine(E.Message);
+        }
+        Console.WriteLine("Seeding roles...");
+            DataSeeder.SeedRoles(aScope.ServiceProvider);
     }
     public static void Main(string[] args)
     {
@@ -28,6 +40,7 @@ public class Program
 
         var connectionString =
             "Server=postgreserver;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;";
+            //"Server=localhost:5432;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;";
         Console.WriteLine(" ====== Connections string is: " + connectionString);
         /*Lexicon_OrchBookingBackendContextConnection*/
         builder.Services.AddCors(options =>

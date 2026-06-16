@@ -3,6 +3,7 @@ using System;
 using Lexicon_OrchBookingBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lexicon_OrchBookingBackend.Migrations
 {
     [DbContext(typeof(Lexicon_OrchBookingBackendContext))]
-    partial class Lexicon_OrchBookingBackendContextModelSnapshot : ModelSnapshot
+    [Migration("20260615112146_SetDefaultOfBlogCreated")]
+    partial class SetDefaultOfBlogCreated
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,15 +111,14 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.Property<DateTime>("DateCreated")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
+                        .HasDefaultValueSql("getdate()");
 
                     b.PrimitiveCollection<string[]>("Images")
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<string>("WriterId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("WriterId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

@@ -31,11 +31,31 @@ public class DataSeeder
             }
         }
         
-        // Uncomment this if we need to readd admin back
-        /*if (userManager.Users.Count(u => u.NormalizedEmail == "ERIK.LJUNGMAN@GMAIL.COM") > 0)
+        // Lets make a default admin account...
+        if (userManager.Users.Count(u => u.NormalizedUserName == "ADMIN") < 1)
+        {
+            Lexicon_OrchBookingBackendUser admin = new Lexicon_OrchBookingBackendUser();
+            admin.UserName = "Admin";
+            admin.Email = "erik.ljungman@gmail.com";
+            
+            var identityResult = await userManager.CreateAsync(admin, "Erik123#");
+            if (identityResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+        }
+        else
         {
             var admin = userManager.Users.First(u => u.NormalizedUserName == "ADMIN");
-            userManager.AddToRoleAsync(admin, "Admin");
-        }*/
+            if (!(await userManager.IsInRoleAsync(admin, "Admin")) && admin.NormalizedEmail == "ERIK.LJUNGMAN@GMAIL.COM")
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+            // Uncomment this if we need to read admin back
+            /*if (userManager.Users.Count(u => u.NormalizedUserName == "ADMIN") > 0)
+            {
+                
+            }*/
+        }
     }
 }

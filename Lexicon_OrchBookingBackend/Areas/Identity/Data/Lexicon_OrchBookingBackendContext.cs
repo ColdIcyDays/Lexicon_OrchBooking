@@ -8,7 +8,8 @@ namespace Lexicon_OrchBookingBackend.Data;
 
 public class Lexicon_OrchBookingBackendContext : IdentityDbContext<Lexicon_OrchBookingBackendUser>
 {
-    public DbSet<TestModel> TestModels { get; set; }
+    public DbSet<TestModel> TestModels { get; set; } // We can remove these on release...
+    public DbSet<Blog> Blogs { get; set; }
     public Lexicon_OrchBookingBackendContext(DbContextOptions<Lexicon_OrchBookingBackendContext> options)
         : base(options)
     {
@@ -20,5 +21,7 @@ public class Lexicon_OrchBookingBackendContext : IdentityDbContext<Lexicon_OrchB
         // Customize the ASP.NET Identity model and override the defaults if needed.
         // For example, you can rename the ASP.NET Identity table names and more.
         // Add your customizations after calling base.OnModelCreating(builder);
+
+        builder.Entity<Blog>().Property(p => p.DateCreated).HasDefaultValueSql("NOW()");
     }
 }
