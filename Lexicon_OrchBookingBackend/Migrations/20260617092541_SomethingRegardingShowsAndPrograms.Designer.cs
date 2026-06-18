@@ -3,6 +3,7 @@ using System;
 using Lexicon_OrchBookingBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lexicon_OrchBookingBackend.Migrations
 {
     [DbContext(typeof(Lexicon_OrchBookingBackendContext))]
-    partial class Lexicon_OrchBookingBackendContextModelSnapshot : ModelSnapshot
+    [Migration("20260617092541_SomethingRegardingShowsAndPrograms")]
+    partial class SomethingRegardingShowsAndPrograms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,61 +150,6 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.ToTable("Programs");
                 });
 
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.OrchVenue", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("MaxSeating")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Venues");
-                });
-
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.PurchasedTicket", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PriceId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("PurchaseDate")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<int>("ShowId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PriceId");
-
-                    b.HasIndex("ShowId");
-
-                    b.ToTable("PurchasedTickets");
-                });
-
             modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.Show", b =>
                 {
                     b.Property<int>("Id")
@@ -216,12 +164,15 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.Property<DateTime>("ShowDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VenueId")
-                        .HasColumnType("integer");
+                    b.Property<string>("VenueAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VenueName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("VenueId");
 
                     b.ToTable("Shows");
                 });
@@ -241,31 +192,6 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TestModels");
-                });
-
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.TicketPrice", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("OrchVenueId")
-                        .HasColumnType("integer");
-
-                    b.Property<long>("TicketCost")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("TicketName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrchVenueId");
-
-                    b.ToTable("TicketPrice");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -400,41 +326,6 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.PurchasedTicket", b =>
-                {
-                    b.HasOne("Lexicon_OrchBookingBackend.Models.TicketPrice", "Price")
-                        .WithMany()
-                        .HasForeignKey("PriceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Lexicon_OrchBookingBackend.Models.Show", null)
-                        .WithMany("PurchasedTickets")
-                        .HasForeignKey("ShowId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Price");
-                });
-
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.Show", b =>
-                {
-                    b.HasOne("Lexicon_OrchBookingBackend.Models.OrchVenue", "Venue")
-                        .WithMany()
-                        .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Venue");
-                });
-
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.TicketPrice", b =>
-                {
-                    b.HasOne("Lexicon_OrchBookingBackend.Models.OrchVenue", null)
-                        .WithMany("TicketPrices")
-                        .HasForeignKey("OrchVenueId");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -484,16 +375,6 @@ namespace Lexicon_OrchBookingBackend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.OrchVenue", b =>
-                {
-                    b.Navigation("TicketPrices");
-                });
-
-            modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.Show", b =>
-                {
-                    b.Navigation("PurchasedTickets");
                 });
 #pragma warning restore 612, 618
         }
