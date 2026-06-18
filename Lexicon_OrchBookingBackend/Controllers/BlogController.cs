@@ -36,10 +36,10 @@ namespace Lexicon_OrchBookingBackend.Controllers //
                 blog.WriterId = writerId;
             }
 
-            var result = await _context.Blogs.AddAsync(blog);
-            await _context.SaveChangesAsync();
+            await _context.Blogs.AddAsync(blog);
+            bool success = await _context.SaveChangesAsync() > 0;
             
-            return Ok("Tried to add blog!");
+            return success ? Ok("Successfully added blog!") : BadRequest("Failed to add blog!");
         }
 
         [HttpGet]
@@ -51,7 +51,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             if (PerPage <= 0)
             {
                 result.Page = 0;
-                result.FoundBlogs = _context.Blogs.OrderBy(b => b.DateCreated).OrderBy(b => b.Id).ToList();
+                result.FoundBlogs = _context.Blogs.OrderBy(b => b.DateCreated).ThenBy(b => b.Id).ToList();
                 return result;
             }
             

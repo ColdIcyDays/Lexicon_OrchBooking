@@ -14,4 +14,6 @@ public class UserData
     
     [Required]
     public string DisplayName { get; set; }
+    
+    public ICollection<PurchasedTicket> PurchasedTickets { get; set; }
 }
