@@ -39,8 +39,8 @@ public class Program
         //var connectionString = builder.Configuration.GetConnectionString("ConnectionStrings__DefaultConnection") ?? throw new InvalidOperationException("Connection string 'Lexicon_OrchBookingBackendContextConnection' not found.");;
 
         var connectionString =
-            "Server=postgreserver;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;";
-            //"Server=localhost:5432;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;";
+            "Server=localhost:5432;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;Include Error Detail=True;";
+            //"Server=postgreserver;Port=5432;Database=Lexicon_OrchBookingBackend;Username=postgres;Password=hvhhvhvv02;";
         Console.WriteLine(" ====== Connections string is: " + connectionString);
         /*Lexicon_OrchBookingBackendContextConnection*/
         builder.Services.AddCors(options =>
