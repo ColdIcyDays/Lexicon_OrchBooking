@@ -3,6 +3,7 @@ using System;
 using Lexicon_OrchBookingBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lexicon_OrchBookingBackend.Migrations
 {
     [DbContext(typeof(Lexicon_OrchBookingBackendContext))]
-    partial class Lexicon_OrchBookingBackendContextModelSnapshot : ModelSnapshot
+    [Migration("20260622111725_RemovedForeignObjectFromTicketPrice")]
+    partial class RemovedForeignObjectFromTicketPrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,7 +259,7 @@ namespace Lexicon_OrchBookingBackend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("OrchVenueId")
+                    b.Property<int?>("OrchVenueId")
                         .HasColumnType("integer");
 
                     b.Property<long>("TicketCost")
@@ -265,6 +268,9 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.Property<string>("TicketName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("VenueId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -466,9 +472,7 @@ namespace Lexicon_OrchBookingBackend.Migrations
                 {
                     b.HasOne("Lexicon_OrchBookingBackend.Models.OrchVenue", null)
                         .WithMany("TicketPrices")
-                        .HasForeignKey("OrchVenueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OrchVenueId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

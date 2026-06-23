@@ -3,6 +3,7 @@ using System;
 using Lexicon_OrchBookingBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lexicon_OrchBookingBackend.Migrations
 {
     [DbContext(typeof(Lexicon_OrchBookingBackendContext))]
-    partial class Lexicon_OrchBookingBackendContextModelSnapshot : ModelSnapshot
+    [Migration("20260620171521_AddedUserDataTable")]
+    partial class AddedUserDataTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,6 +88,8 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("UserDataId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -256,7 +261,7 @@ namespace Lexicon_OrchBookingBackend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("OrchVenueId")
+                    b.Property<int?>("OrchVenueId")
                         .HasColumnType("integer");
 
                     b.Property<long>("TicketCost")
@@ -270,7 +275,7 @@ namespace Lexicon_OrchBookingBackend.Migrations
 
                     b.HasIndex("OrchVenueId");
 
-                    b.ToTable("TicketPrices");
+                    b.ToTable("TicketPrice");
                 });
 
             modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.UserData", b =>
@@ -430,6 +435,17 @@ namespace Lexicon_OrchBookingBackend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Lexicon_OrchBookingBackend.Areas.Identity.Data.Lexicon_OrchBookingBackendUser", b =>
+                {
+                    b.HasOne("Lexicon_OrchBookingBackend.Models.UserData", "UserData")
+                        .WithMany()
+                        .HasForeignKey("UserDataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserData");
+                });
+
             modelBuilder.Entity("Lexicon_OrchBookingBackend.Models.PurchasedTicket", b =>
                 {
                     b.HasOne("Lexicon_OrchBookingBackend.Models.TicketPrice", "Price")
@@ -466,9 +482,7 @@ namespace Lexicon_OrchBookingBackend.Migrations
                 {
                     b.HasOne("Lexicon_OrchBookingBackend.Models.OrchVenue", null)
                         .WithMany("TicketPrices")
-                        .HasForeignKey("OrchVenueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OrchVenueId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
