@@ -1,5 +1,6 @@
 ﻿using Lexicon_OrchBookingBackend.Areas.Identity.Data;
 using Lexicon_OrchBookingBackend.Data;
+using Lexicon_OrchBookingBackend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
@@ -37,6 +38,15 @@ public class DataSeeder
             Lexicon_OrchBookingBackendUser admin = new Lexicon_OrchBookingBackendUser();
             admin.UserName = "Admin";
             admin.Email = "erik.ljungman@gmail.com";
+
+            UserData adminData = new UserData();
+
+            adminData.DisplayName = admin.UserName;
+            
+            await context.UserDatas.AddAsync(adminData);
+            await context.SaveChangesAsync();
+            
+            admin.UserDataId = adminData.Id; 
             
             var identityResult = await userManager.CreateAsync(admin, "Erik123#");
             if (identityResult.Succeeded)
