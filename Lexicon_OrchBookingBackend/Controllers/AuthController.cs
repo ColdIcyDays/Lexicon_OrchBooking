@@ -1,12 +1,15 @@
 ﻿using System.Security.Claims;
 using Lexicon_OrchBookingBackend.Areas.Identity.Data;
 using Lexicon_OrchBookingBackend.Controllers.DTOs;
+using Lexicon_OrchBookingBackend.Data;
+using Lexicon_OrchBookingBackend.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lexicon_OrchBookingBackend.Controllers;
 
@@ -14,12 +17,14 @@ namespace Lexicon_OrchBookingBackend.Controllers;
 [Route("Account/[controller]")]
 public class AuthController : ControllerBase
 {
+    private Lexicon_OrchBookingBackendContext _context;
     private readonly UserManager<Lexicon_OrchBookingBackendUser> _userManager;
     private readonly SignInManager<Lexicon_OrchBookingBackendUser> _signInManager;
-    public AuthController(UserManager<Lexicon_OrchBookingBackendUser> aUserManager, SignInManager<Lexicon_OrchBookingBackendUser> signInManager)
+    public AuthController(Lexicon_OrchBookingBackendContext aContext, UserManager<Lexicon_OrchBookingBackendUser> aUserManager, SignInManager<Lexicon_OrchBookingBackendUser> signInManager)
     {
         _userManager = aUserManager;
         _signInManager = signInManager;
+        _context = aContext;
     }
 
     [HttpPost]
@@ -29,6 +34,14 @@ public class AuthController : ControllerBase
         var identityUser = new Lexicon_OrchBookingBackendUser();
         identityUser.Email = aRequest.Email;
         identityUser.UserName = aRequest.Username;
+        
+        UserData userData = new UserData();
+        userData.DisplayName = identityUser.UserName;
+            
+        await _context.UserDatas.AddAsync(userData);
+        await _context.SaveChangesAsync();
+
+        identityUser.UserDataId = userData.Id;
 
         var identityResult = await _userManager.CreateAsync(identityUser, aRequest.Password);
 
@@ -42,6 +55,9 @@ public class AuthController : ControllerBase
             
             return BadRequest("Uh oh, User creation success, but failed adding role!");
         }
+        
+        _context.UserDatas.Remove(userData);
+        await _context.SaveChangesAsync();
 
         return BadRequest("Uh oh, something went wrong! Result: " + identityResult.ToString());
     }
@@ -75,6 +91,7 @@ public class AuthController : ControllerBase
             data.Username = foundUser.UserName;
             data.Roles = _userManager.GetRolesAsync(foundUser).Result.ToArray();
             
+            data.Data = _context.UserDatas.First(v => v.Id == foundUser.UserDataId);
             
             return Ok(data);
         }
