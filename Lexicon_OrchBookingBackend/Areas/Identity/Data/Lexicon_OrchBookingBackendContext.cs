@@ -10,10 +10,12 @@ public class Lexicon_OrchBookingBackendContext : IdentityDbContext<Lexicon_OrchB
 {
     public DbSet<TestModel> TestModels { get; set; } // We can remove these on release...
     public DbSet<Blog> Blogs { get; set; }
+    public DbSet<UserData> UserDatas { get; set; }
     public DbSet<OrchProgram> Programs { get; set; }
     public DbSet<Show> Shows { get; set; }
     public DbSet<OrchVenue> Venues { get; set; }
     public DbSet<PurchasedTicket> PurchasedTickets { get; set; }
+    public DbSet<TicketPrice> TicketPrices { get; set; }
     public Lexicon_OrchBookingBackendContext(DbContextOptions<Lexicon_OrchBookingBackendContext> options)
         : base(options)
     {
@@ -28,5 +30,6 @@ public class Lexicon_OrchBookingBackendContext : IdentityDbContext<Lexicon_OrchB
 
         builder.Entity<Blog>().Property(p => p.DateCreated).HasDefaultValueSql("NOW()");
         builder.Entity<PurchasedTicket>().Property(p => p.PurchaseDate).HasDefaultValueSql("NOW()");
+        builder.Entity<UserData>().Property(p => p.DateJoined).HasDefaultValueSql("NOW()");
     }
 }

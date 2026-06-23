@@ -12,6 +12,6 @@ namespace Lexicon_OrchBookingBackend.Areas.Identity.Data;
 public class Lexicon_OrchBookingBackendUser : IdentityUser
 {
     [ForeignKey(nameof(UserData))]
-    public int userData { get; set; }
+    public int UserDataId { get; set; }
 }
 
