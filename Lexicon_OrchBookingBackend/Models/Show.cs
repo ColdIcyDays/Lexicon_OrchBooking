@@ -9,6 +9,7 @@ public class Show
     public int Id { get; set; }
     [ForeignKey(nameof(OrchProgram))]
     public int ProgramId { get; set; }
+    public OrchProgram Program { get; set; }
     
     [ForeignKey(nameof(OrchVenue))]
     public int VenueId { get; set; }
