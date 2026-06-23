@@ -133,6 +133,13 @@ public class AuthController : ControllerBase
         
         return BadRequest("Password check failed: '" + result + "'");
     }
+
+    [HttpPost]
+    [Route("Logout")]
+    public async Task Logout()
+    {
+        await _signInManager.SignOutAsync();
+    }
     
     [HttpPost]
     [Authorize (Roles = "Admin")]
