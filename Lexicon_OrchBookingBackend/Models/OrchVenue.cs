@@ -8,5 +8,5 @@ public class OrchVenue
     public string Name { get; set; }
     public string Address { get; set; }
     public int MaxSeating { get; set; }
-    public List<TicketPrice> TicketPrices { get; set; }
+    public ICollection<TicketPrice> TicketPrices { get; set; }
 }
