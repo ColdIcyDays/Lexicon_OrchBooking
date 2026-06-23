@@ -4,6 +4,7 @@ using Lexicon_OrchBookingBackend.Data;
 using Lexicon_OrchBookingBackend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -53,11 +54,19 @@ namespace Lexicon_OrchBookingBackend.Controllers //
                 return BadRequest("No venue with id [" + aRequest.VenueId + "]!");
             }
             
+            OrchProgram? foundProgram = _context.Programs.Any(program => program.Id == aRequest.VenueId) ? _context.Programs.FirstOrDefault(program => program.Id == aRequest.VenueId) : null;
+            if (foundProgram == null)
+            {
+                return BadRequest("No program with id [" + aRequest.ProgramId + "]!");
+            }
+
+            /* TODO: Can probably remove the program/venue assigments and only assign the ids... */
             Show createdShow = new Show();
             createdShow.VenueId = aRequest.VenueId;
             createdShow.Venue = foundVenue;
             createdShow.ShowDate = DateTime.SpecifyKind(aRequest.ShowDate, DateTimeKind.Utc);
             createdShow.ProgramId = aRequest.ProgramId;
+            createdShow.Program = foundProgram;
 
             await _context.Shows.AddAsync(createdShow);
             bool success = await _context.SaveChangesAsync() > 0;
@@ -74,18 +83,48 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             createdOrchVenue.Address = aRequest.Address;
             createdOrchVenue.Name = aRequest.Name;
             createdOrchVenue.MaxSeating = aRequest.MaxSeating;
+            
+            /* TODO: Make table for ticket prices, they need a key for the venue they belong to. */
+            List<TicketPrice> ticketPrices = new List<TicketPrice>();
             foreach (var ticketPrice in aRequest.TicketPrices)
             {
                 TicketPrice price = new TicketPrice();
                 price.TicketCost = ticketPrice.TicketCost;
                 price.TicketName = ticketPrice.TicketName;
-                createdOrchVenue.TicketPrices.Add(price);
+                ticketPrices.Add(price);
             }
 
             await _context.Venues.AddAsync(createdOrchVenue);
             bool success = await _context.SaveChangesAsync() > 0;
+
+            if (!success)
+            {
+
+
+                return StatusCode(500, "Failed to add venue!");
+            }
             
-            return success ? Ok("Successfully added venue!") : BadRequest("Failed to add venue!");
+            foreach (var price in ticketPrices)
+            {
+                price.OrchVenueId = createdOrchVenue.Id;
+            }
+            
+            await _context.TicketPrices.AddRangeAsync(ticketPrices);
+            bool savedTicketPrices = await _context.SaveChangesAsync() > 0;
+
+            if (!savedTicketPrices)
+            {
+                _context.Venues.Remove(createdOrchVenue);
+                await _context.SaveChangesAsync();
+                
+                return StatusCode(500, "Failed to add ticket prices...");
+            }
+
+
+
+            createdOrchVenue.TicketPrices = ticketPrices;
+            
+            return Ok("Successfully added venue!");
         }
 
         
@@ -98,7 +137,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             if (PerPage <= 0)
             {
                 result.Page = 0;
-                result.FoundPrograms = _context.Programs.OrderBy(b => b.Id).ToList();
+                result.FoundPrograms = _context.Programs.OrderByDescending(b => b.Id).ToList();
                 return result;
             }
 
@@ -107,7 +146,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             {
                 /* Add sorts here... */
                 default: // Sort by showdate.
-                    result.FoundPrograms = PaginationSet<OrchProgram, object, int>(_context.Programs, PerPage, Page, null, idSort);
+                    result.FoundPrograms = await PaginationSet<OrchProgram, object, int>(_context.Programs, PerPage, Page, null, idSort).ToListAsync();
                     break;
             }
             
@@ -116,9 +155,13 @@ namespace Lexicon_OrchBookingBackend.Controllers //
         
         [HttpGet]
         [Route("GetVenues")]
-        public async Task<ICollection<OrchVenue>> GetVenues()
+        public async Task<OrchGetVenuesResult> GetVenues()
         {
-            return await _context.Venues.ToListAsync();
+            OrchGetVenuesResult result = new OrchGetVenuesResult();
+            
+            result.Venues = await _context.Venues.Include(v => v.TicketPrices).OrderByDescending(v => v.Id).ToListAsync();
+
+            return result;
         }
         
         [HttpGet]
@@ -130,7 +173,10 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             if (PerPage <= 0)
             {
                 result.Page = 0;
-                result.FoundShows = _context.Shows.OrderBy(b => b.ShowDate).ThenBy(b => b.Id).ToList();
+                result.FoundShows = await _context.Shows.OrderBy(b => b.ShowDate).ThenBy(b => b.Id)
+                    .Include(show => show.Venue)
+                    .Include(show => show.Program)
+                    .ToListAsync();
                 return result;
             }
 
@@ -139,7 +185,10 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             {
                 /* Add sorts here... */
                 default: // Sort by showdate.
-                    result.FoundShows = PaginationSet(_context.Shows, PerPage, Page, show => show.ShowDate, idSort);
+                    result.FoundShows = await PaginationSet(_context.Shows, PerPage, Page, show => show.ShowDate, idSort)
+                        .Include(show => show.Venue)
+                        .Include(show => show.Program)
+                        .ToListAsync();
                     break;
             }
             
@@ -147,7 +196,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
         }
 
 
-        private static List<T> PaginationSet<T, TSortType, TIdType>(DbSet<T> aDbSet, int aPerPage, int aPage, Func<T, TSortType>? aSortMethod, Func<T, TIdType> aSortById) where T : class
+        private static IQueryable<T> PaginationSet<T, TSortType, TIdType>(DbSet<T> aDbSet, int aPerPage, int aPage, Func<T, TSortType>? aSortMethod, Func<T, TIdType> aSortById) where T : class
         {
             IQueryable<T> orderedEntities;
             if (aSortMethod != null)
@@ -164,7 +213,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             int safePerPage = Math.Min(aPerPage, totalBlogs);
             int safePage = Math.Min((int)Math.Ceiling((double)totalBlogs / (double)safePerPage), aPage);
             
-            return orderedEntities.Skip(safePage * safePerPage).Take(safePerPage).ToList();
+            return orderedEntities.Skip(safePage * safePerPage).Take(safePerPage);
         }
         
     }
