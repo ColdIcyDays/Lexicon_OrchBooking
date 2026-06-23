@@ -51,7 +51,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             if (PerPage <= 0)
             {
                 result.Page = 0;
-                result.FoundBlogs = _context.Blogs.OrderBy(b => b.DateCreated).ThenBy(b => b.Id).ToList();
+                result.FoundBlogs = _context.Blogs.OrderByDescending(b => b.DateCreated).ThenBy(b => b.Id).ToList();
                 return result;
             }
             
@@ -60,7 +60,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             {
                 /* Add sorts here... */
                 default:
-                    orderedBlogs = _context.Blogs.OrderBy(b => b.DateCreated).ThenBy(b => b.Id);
+                    orderedBlogs = _context.Blogs.OrderByDescending(b => b.DateCreated).ThenBy(b => b.Id);
                     break;
             }
 
