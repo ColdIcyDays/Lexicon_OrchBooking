@@ -41,12 +41,12 @@ namespace Lexicon_OrchBookingBackend.Controllers //
         [HttpPost]
         [Authorize(Roles = "Admin,Showmanager")]
         [Route("UploadShow")]
-        public async Task<ActionResult> UploadShow([FromForm] OrchUploadShowRequest aRequest)
+        public async Task<ActionResult> UploadShow([FromBody] OrchUploadShowRequest aRequest)
         {
-            if (!_context.Programs.Any(p => p.Id == aRequest.ProgramId))
+            /*if (!_context.Programs.Any(p => p.Id == aRequest.ProgramId))
             {
                 return BadRequest("No program with id [" + aRequest.ProgramId + "]!");
-            }
+            }*/
 
             OrchVenue? foundVenue = _context.Venues.Any(venue => venue.Id == aRequest.VenueId) ? _context.Venues.FirstOrDefault(venue => venue.Id == aRequest.VenueId) : null;
             if (foundVenue == null)
@@ -54,7 +54,7 @@ namespace Lexicon_OrchBookingBackend.Controllers //
                 return BadRequest("No venue with id [" + aRequest.VenueId + "]!");
             }
             
-            OrchProgram? foundProgram = _context.Programs.Any(program => program.Id == aRequest.VenueId) ? _context.Programs.FirstOrDefault(program => program.Id == aRequest.VenueId) : null;
+            OrchProgram? foundProgram = _context.Programs.Any(program => program.Id == aRequest.ProgramId) ? _context.Programs.FirstOrDefault(program => program.Id == aRequest.ProgramId) : null;
             if (foundProgram == null)
             {
                 return BadRequest("No program with id [" + aRequest.ProgramId + "]!");
@@ -127,6 +127,65 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             return Ok("Successfully added venue!");
         }
 
+        [HttpGet]
+        [Route("ProgramsWithShows")]
+        public async Task<OrchProgramsWithShowsResult> ProgramsWithShows([FromQuery] int PerPage = -1, [FromQuery] int Page = 0, [FromQuery] string SortMethod = "")
+        {
+            async Task<IQueryable<OrchProgramWithVenue>> FetchCorrectData()
+            {
+                List<OrchProgramWithVenue> resultingData = new List<OrchProgramWithVenue>();
+                
+                foreach (var program in await _context.Programs.ToListAsync())
+                {
+                    List<Show> foundShows = await _context.Shows
+                        .Include((show => show.Venue))
+                        .Where((show => show.ProgramId == program.Id))
+                        .ToListAsync();
+
+                    OrchProgramWithVenue data = new OrchProgramWithVenue();
+                    data.Program = program;
+
+                    foreach (var show in foundShows)
+                    {
+                        data.Venues.Add(show.Venue);
+                    }
+                    
+                    resultingData.Add(data);
+                }
+
+                return resultingData.AsQueryable();
+            }
+            
+            OrchProgramsWithShowsResult result = new OrchProgramsWithShowsResult();
+            IQueryable<OrchProgramWithVenue> relevantPrograms = await FetchCorrectData();
+
+            if (PerPage <= 0)
+            {
+                result.Page = 0;
+                result.ProgramWithVenues = relevantPrograms.OrderByDescending(b => b.Program.Id).ToList();
+                return result;
+            }
+
+            Func<OrchProgramWithVenue, int> idSort = programWithVenue => programWithVenue.Program.Id;
+            switch (SortMethod.ToLower())
+            {
+                /* Add sorts here... */
+                default: // Sort by showdate.
+                    result.ProgramWithVenues = await PaginationSet<OrchProgramWithVenue, object, int>(relevantPrograms, PerPage, Page, null, idSort).ToListAsync();
+                    break;
+            }
+
+            return result;
+        }
+
+        [HttpGet]
+        [Route("ShowsAtVenue")]
+        public async Task<OrchGetShowsAtVenueResult> ProgramsWithShows([FromBody] OrchGetShowsAtVenueRequest aRequest)
+        {
+            OrchGetShowsAtVenueResult result = new OrchGetShowsAtVenueResult();
+            result.Shows = await _context.Shows.Where((show => show.VenueId == aRequest.VenueId)).ToListAsync();
+            return result;
+        }
         
         [HttpGet]
         [Route("GetPrograms")]
@@ -196,8 +255,10 @@ namespace Lexicon_OrchBookingBackend.Controllers //
         }
 
 
-        private static IQueryable<T> PaginationSet<T, TSortType, TIdType>(DbSet<T> aDbSet, int aPerPage, int aPage, Func<T, TSortType>? aSortMethod, Func<T, TIdType> aSortById) where T : class
+        /*private static IQueryable<T> PaginationSet<T, TSortType, TIdType>(DbSet<T> aDbSet, int aPerPage, int aPage, Func<T, TSortType>? aSortMethod, Func<T, TIdType> aSortById) where T : class
         {
+            PaginationSet(aDbSet, aPerPage, aPage, aSortMethod, aSortById);
+            
             IQueryable<T> orderedEntities;
             if (aSortMethod != null)
             {
@@ -214,7 +275,26 @@ namespace Lexicon_OrchBookingBackend.Controllers //
             int safePage = Math.Min((int)Math.Ceiling((double)totalBlogs / (double)safePerPage), aPage);
             
             return orderedEntities.Skip(safePage * safePerPage).Take(safePerPage);
-        }
+        }*/
         
+        private static IQueryable<T> PaginationSet<T, TSortType, TIdType>(IQueryable<T> aQueryableObject, int aPerPage, int aPage, Func<T, TSortType>? aSortMethod, Func<T, TIdType> aSortById) where T : class
+        {
+            IQueryable<T> orderedEntities;
+            if (aSortMethod != null)
+            {
+                orderedEntities = aQueryableObject.OrderBy(aSortMethod).ThenBy(aSortById).AsQueryable();
+            }
+            else
+            {
+                orderedEntities = aQueryableObject.OrderBy(aSortById).AsQueryable();
+            }
+            
+            int totalBlogs = aQueryableObject.Count();
+            
+            int safePerPage = Math.Min(aPerPage, totalBlogs);
+            int safePage = Math.Min((int)Math.Ceiling((double)totalBlogs / (double)safePerPage), aPage);
+            
+            return orderedEntities.Skip(safePage * safePerPage).Take(safePerPage);
+        }
     }
 }
